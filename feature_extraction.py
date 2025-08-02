@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.svm import SVC
 import joblib
 from muse_stream import get_eeg_buffer
+from scipy.signal import butter, filtfilt, iirnotch
 # Function to calculate mobility and complexity (Hjorth parameters)
 def calculate_hjorth_parameters(signal):
     first_derivative = np.diff(signal)
@@ -24,12 +25,21 @@ def calculate_bandpowers(signal, fs=250):
     beta_power = np.sum(psd[beta_band])
     return alpha_power, beta_power
 
+def bandpass_filter(data, fs=250, lowcut=3, highcut=50, order=4):
+    b, a = butter(order, [lowcut/(fs/2), highcut/(fs/2)], btype='band')
+    return filtfilt(b, a, data, axis=0)
+
+def notch_filter(data, fs=250, freq=60, Q=30):
+    b, a = iirnotch(freq/(fs/2), Q)
+    return filtfilt(b, a, data, axis=0)
+
 
 
 def hjorth_bandpower(signal):
+    signal = bandpass_filter(signal)
     mobility, complexity = calculate_hjorth_parameters(signal)
     alpha_power, beta_power = calculate_bandpowers(signal)
     return [mobility, complexity, alpha_power, beta_power]
 
-def alpha_beta_metric(signal):
+
     

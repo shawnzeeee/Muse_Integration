@@ -6,6 +6,8 @@ import pandas as pd
 from sklearn.svm import SVC
 import joblib
 from muse_stream import get_eeg_buffer
+from feature_extraction import bandpass_filter
+
 # Function to calculate mobility and complexity (Hjorth parameters)
 def calculate_hjorth_parameters(signal):
     first_derivative = np.diff(signal)
@@ -26,7 +28,7 @@ def calculate_bandpowers(signal, fs=250):
 
 
 from feature_extraction import hjorth_bandpower
-def process_idle_windows(idle_indices, df, window_size=500, num_windows=5):
+def process_idle_windows(idle_indices, df, window_size, num_windows=5):
     processed_data = []
     channel_names = ["Channel 1", "Channel 2", "Channel 3", "Channel 4"]
     for start_idx in idle_indices:
@@ -46,7 +48,7 @@ def process_idle_windows(idle_indices, df, window_size=500, num_windows=5):
             processed_data.append(features)
     return processed_data
 
-def process_attention_windows(attention_indices, df, window_size=500, num_windows=4):
+def process_attention_windows(attention_indices, df, window_size, num_windows=4):
     processed_data = []
     channel_names = ["Channel 1", "Channel 2", "Channel 3", "Channel 4"]
     for start_idx in attention_indices:
@@ -69,6 +71,8 @@ def process_attention_windows(attention_indices, df, window_size=500, num_window
 def classify(stop_event):
     all_output_data = []
 
+    window_size = 500  # 2 seconds, 4 channels, 250Hz
+
     # Load your CSV file (replace with your actual CSV path)
     csv_path = os.path.join(os.path.dirname(__file__), 'calibration.csv')
     df = pd.read_csv(csv_path)
@@ -77,8 +81,8 @@ def classify(stop_event):
     attention_indices = df.index[df['Class'] == 2].tolist()
     idle_indices = df.index[df['Class'] == 1].tolist()
 
-    all_output_data.extend(process_attention_windows(attention_indices, df))
-    all_output_data.extend(process_idle_windows(idle_indices, df))
+    all_output_data.extend(process_attention_windows(attention_indices, df, window_size))
+    all_output_data.extend(process_idle_windows(idle_indices, df, window_size))
 
     all_output_data = np.array(all_output_data)
 
@@ -90,10 +94,10 @@ def classify(stop_event):
 
     svm = SVC(kernel='linear')
 
+    print("Training")
     # Train SVM directly on features
     svm.fit(X, y)
 
-    window_size = 2000  # 2 seconds, 4 channels, 250Hz
 
     try:
         attention_threshold = 0
@@ -102,15 +106,12 @@ def classify(stop_event):
             if len(data_array) < window_size:
                 time.sleep(0.1)
                 continue
-            if len(data_array) == window_size:
-                eeg_window = data_array.reshape(500, 4)
+            if len(data_array) == window_size*4:
+                eeg_window = data_array.reshape(window_size, 4)
                 features = []
                 for ch in range(4):
                     signal = eeg_window[:, ch]
-                    #print(signal)
-                    mobility, complexity = calculate_hjorth_parameters(signal)
-                    alpha_power, beta_power = calculate_bandpowers(signal)
-                    features.extend([mobility, complexity, alpha_power, beta_power])
+                    features.extend(hjorth_bandpower(signal))
                 features = np.array(features).reshape(1, -1)
                 # Predict class
                 predicted_class = svm.predict(features)[0]

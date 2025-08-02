@@ -78,6 +78,39 @@ def update_eeg_buffer(start_event, stop_event):
     return "Stream Ended"
 
 
+from blink_collection import get_classification
+
+def blink_timestamping(start_event, stop_event):
+    import csv
+    global eeg_buffer
+    buffer_size = 4 * 250 * 2
+    eeg_buffer = np.zeros(buffer_size, dtype=np.float32)
+    csv_path = "blink_data.csv"
+    previous_class = 0
+    try:
+        wait_for_stream(timeout=10)
+        inlet = connect_to_eeg_stream()
+        start_event.set()
+        with open(csv_path, mode="w", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["ch1", "ch2", "ch3", "ch4", "classification"])
+            while not stop_event.is_set():
+                sample, timestamp = inlet.pull_sample(timeout=1.0)
+                if sample is not None:
+                    classification = get_classification()
+                    send_code = 0
+                    if classification != previous_class:
+                        send_code = classification
+                    previous_class = classification
+                    row = [sample[0], sample[1], sample[2], sample[3], send_code]
+                    writer.writerow(row)
+    except KeyboardInterrupt:
+        print("\n[INFO] Stopping...")
+    except Exception as e:
+        print(f"\n Something went wrong creating EEG buffer: {e}")
+    return "Stream Ended"
+
+
 def get_eeg_buffer():
     global eeg_buffer
     return eeg_buffer

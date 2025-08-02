@@ -8,8 +8,9 @@ tasks = {}
 
 
 
-from muse_stream import start_muse_stream, update_eeg_buffer
+from muse_stream import start_muse_stream, update_eeg_buffer, blink_timestamping
 from classifier import classify
+from blink_collection import blink_prompt
 import time
 
 muselsl_start_event = threading.Event()
@@ -19,7 +20,7 @@ pylsl_start_event = threading.Event()
 classifier_thread = None
 pylsl_thread = None
 muselsl_thread = None
-
+blink_collection_thread = None
 def connect_muse(mac_address: str):
     global muselsl_thread, muselsl_start_event, muselsl_stop_event, pylsl_thread, pylsl_stop_event
     pylsl_start_event.clear()
@@ -40,6 +41,11 @@ def connect_muse(mac_address: str):
         if pylsl_start_event.is_set():
             classifier_thread = threading.Thread(target=classify, args=(muselsl_stop_event,))
             classifier_thread.start()
+            # blink_collection_thread = threading.Thread(target=blink_prompt, args=(muselsl_stop_event,))
+            # blink_collection_thread.start()
+            # blink_collection_thread.join()
+            # disconnect_muse()
+
     return {"data" : "Stream Stopped"}
 
 
