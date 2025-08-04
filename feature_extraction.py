@@ -25,9 +25,26 @@ def calculate_bandpowers(signal, fs=250):
     beta_power = np.sum(psd[beta_band])
     return alpha_power, beta_power
 
+def calculate_rms(signal):
+    """
+    Returns the root mean square (RMS) value of a 1D signal.
+    """
+    return np.sqrt(np.mean(np.square(signal)))
+
 def bandpass_filter(data, fs=250, lowcut=3, highcut=50, order=4):
     b, a = butter(order, [lowcut/(fs/2), highcut/(fs/2)], btype='band')
-    return filtfilt(b, a, data, axis=0)
+def bandpass_filter(window, fs=250, lowcut=3, highcut=50, order=4):
+    """
+    Apply bandpass filter to each channel (column) in the window.
+    window: shape (samples, channels)
+    Returns filtered window of same shape.
+    """
+    b, a = butter(order, [lowcut/(fs/2), highcut/(fs/2)], btype='band')
+    # Filter each channel independently
+    filtered = np.zeros_like(window)
+    for i in range(window.shape[1]):
+        filtered[:, i] = filtfilt(b, a, window[:, i])
+    return filtered
 
 def notch_filter(data, fs=250, freq=60, Q=30):
     b, a = iirnotch(freq/(fs/2), Q)
@@ -36,9 +53,9 @@ def notch_filter(data, fs=250, freq=60, Q=30):
 
 
 def hjorth_bandpower(signal):
-    signal = bandpass_filter(signal)
     mobility, complexity = calculate_hjorth_parameters(signal)
     alpha_power, beta_power = calculate_bandpowers(signal)
+    rms = calculate_rms(signal)
     return [mobility, complexity, alpha_power, beta_power]
 
 

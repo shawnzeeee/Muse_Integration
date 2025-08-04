@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.signal import butter, filtfilt, iirnotch
 from feature_extraction import bandpass_filter, notch_filter
-from artifact_removal import mca_eye_blink_removal
+from artifact_removal_mca import mca_eye_blink_removal
 
 def process_windows(df, window_sec=2, fs=250):
     """
