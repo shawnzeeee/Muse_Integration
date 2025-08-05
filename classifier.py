@@ -66,7 +66,7 @@ def process_idle_windows(idle_indices, df, window_size, num_windows=5):
             processed_data.append(features)
     return processed_data
 
-def process_attention_windows(attention_indices, df, window_size, num_windows=4):
+def process_attention_windows(attention_indices, df, window_size, num_windows=5):
     processed_data = []
     channel_names = ["Channel 1", "Channel 2", "Channel 3", "Channel 4"]
     for start_idx in attention_indices:
@@ -152,16 +152,15 @@ def classify(stop_event):
     # Predict on test set
     y_pred = svm_test.predict(X_test)
 
-    #Plot confusion matrix
-    cm = confusion_matrix(y_test, y_pred)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["Idle", "Attention"])
-    disp.plot(cmap=plt.cm.Blues)
-    plt.title("Confusion Matrix")
-    plt.show()
+
+    # Print F1 score
+    from sklearn.metrics import f1_score
+    f1 = f1_score(y_test, y_pred, average='weighted')
+    print(f"F1 Score: {f1:.3f}")
 
 
     try:
-        # attention_threshold = 0
+        attention_threshold = 0
         # while not stop_event.is_set():
         #     data_array = get_eeg_buffer()
         #     if len(data_array) < window_size:
