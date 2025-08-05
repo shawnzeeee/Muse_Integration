@@ -44,4 +44,5 @@ def blink_prompt(stop_event):
     root.mainloop()
 
 if __name__ == "__main__":
-    blink_prompt()
+    event = threading.Event()
+    blink_prompt(event)

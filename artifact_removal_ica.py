@@ -46,54 +46,19 @@ def ica_blink_filter(window, random_state=0):
             print("ICA did not converge, returning original window.")
             return window
 
-# csv_path = "blink_data.csv"
-# window_sec = 2
-# fs= 250
+csv_path = "blink_data.csv"
+window_sec = 2
+fs = 250
 
-# df = pd.read_csv(csv_path)
-# windows = process_windows(df, window_sec, fs)
-# window, t = windows[3]
+df = pd.read_csv(csv_path)
+windows = process_windows(df, window_sec, fs)
 
-
-# for i in range(4):
-#     window[:,i] = bandpass_filter(window[:,i])
-
-# # Measure inference time for ICA and reconstruction using ica_blink_filter
-# start_time = time.time()
-# reconstructed = ica_blink_filter(window, random_state=0)
-# end_time = time.time()
-# inference_time = end_time - start_time
-# print(f"ICA inference time: {inference_time:.6f} seconds")
-
-
-# # Apply ICA to get components for plotting
-# ica = FastICA(n_components=4, random_state=0)
-
-# S_ = ica.fit_transform(window)
-# reconstructed = ica_blink_filter(window)
-
-# Prepare figure for 8 subplots
-# plt.figure(figsize=(14, 16))
-
-# # Plot ICA components
-# for i in range(4):
-#     plt.subplot(4, 2, 2*i+1)
-#     plt.plot(S_[:, i])
-#     plt.title(f"ICA Component {i+1}")
-#     plt.xlabel("Sample")
-#     plt.ylabel("Amplitude")
-
-
-# # Plot reconstructed signals with each component removed (one channel per subplot)
-# for i in range(4):
-#     plt.subplot(4, 2, 2*i+2)
-#     plt.plot(reconstructed[:, i])
-#     plt.title(f"Reconstructed EEG Channel {i+1} (Component {i+1} Removed)")
-#     plt.xlabel("Sample")
-#     plt.ylabel("Amplitude")
-
-# plt.tight_layout()
-# plt.show()
+for idx, (window, t) in enumerate(windows):
+    filtered_window = bandpass_filter(window)
+    ica = FastICA(n_components=4, random_state=0)
+    S_ = ica.fit_transform(filtered_window)
+    means = np.mean(S_, axis=0)
+    print(f"Window {idx}: ICA component means: {means}")
 
 
 
