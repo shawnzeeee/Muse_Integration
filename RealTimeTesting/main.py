@@ -8,10 +8,9 @@ tasks = {}
 
 
 
-from muse_stream import start_muse_stream, update_eeg_buffer, blink_timestamping
-from classifier import classify
-#from classifier_csp import classify
-from blink_collection import blink_prompt
+from muse_stream import start_muse_stream, update_eeg_buffer
+from test import classify
+
 import time
 
 muselsl_start_event = threading.Event()

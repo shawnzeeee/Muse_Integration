@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from classifiers import get_svm, get_lda, get_xgboost, get_random_forest
 
 # Import feature functions
-from feature_extraction import calculate_hjorth_parameters, calculate_bandpowers
+from feature_extraction import *
 
 # Import filter functions
 from filter import bandpass_filter, notch_filter, ica_blink_filter
@@ -15,13 +15,13 @@ from filter import bandpass_filter, notch_filter, ica_blink_filter
 # Import feature extraction and training functions
 from window_extractor import extract_feature_vector
 from train import train
-
+from feature_extraction import calculate_rms, calculate_peak_to_peak
 
 # Define classifier
 classifier = get_svm()  # Swap out for get_lda(), get_xgboost(), get_random_forest(), etc.
 
 # Define features and filters of interest
-feature_funcs = [calculate_hjorth_parameters, calculate_bandpowers]
+feature_funcs = [calculate_hjorth_parameters, calculate_bandpowers, calculate_log_variance]
 filter_funcs = [bandpass_filter, ica_blink_filter]
 
 window_size = 500

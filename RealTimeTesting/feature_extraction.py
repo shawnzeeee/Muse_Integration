@@ -1,14 +1,24 @@
 import numpy as np
 
 from scipy.signal import welch
-
+import time
+# Function to calculate mobility and complexity (Hjorth parameters)
 # Function to calculate mobility and complexity (Hjorth parameters)
 def calculate_hjorth_parameters(signal):
     first_derivative = np.diff(signal)
     second_derivative = np.diff(first_derivative)
-    variance = np.var(signal)
-    mobility = np.sqrt(np.var(first_derivative) / variance)
-    complexity = np.sqrt(np.var(second_derivative) / np.var(first_derivative)) / mobility
+    var_signal = np.var(signal)
+    var_fd = np.var(first_derivative)
+    var_sd = np.var(second_derivative)
+
+    if var_signal < 1e-10 or var_fd < 1e-10:
+        return 0.0, 0.0
+
+    mobility = np.sqrt(var_fd / var_signal)
+    if mobility < 1e-10:
+        return mobility, 0.0
+
+    complexity = np.sqrt(var_sd / var_fd) / mobility
     return mobility, complexity
 
 # Function to calculate bandpowers (alpha and beta)
@@ -50,6 +60,7 @@ def calculate_entropy(signal, bins=10):
 def calculate_peak_to_peak(signal):
     """Peak-to-peak amplitude."""
     return np.ptp(signal)
+
 # function to calculate the log variance
 def calculate_log_variance(signal):
     var = np.var(signal)
@@ -66,6 +77,5 @@ __all__ = [
     "calculate_skewness",
     "calculate_kurtosis",
     "calculate_entropy",
-    "calculate_peak_to_peak",
-    "calculate_log_variance"
+    "calculate_peak_to_peak"
 ]

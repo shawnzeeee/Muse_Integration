@@ -31,8 +31,6 @@ def calculate_rms(signal):
     """
     return np.sqrt(np.mean(np.square(signal)))
 
-def bandpass_filter(data, fs=250, lowcut=3, highcut=50, order=4):
-    b, a = butter(order, [lowcut/(fs/2), highcut/(fs/2)], btype='band')
 def bandpass_filter(window, fs=250, lowcut=3, highcut=50, order=4):
     """
     Apply bandpass filter to each channel (column) in the window.
