@@ -54,7 +54,7 @@ def classify(stop_event):
     X_scaled = scaler.fit_transform(X)
 
     classifier.fit(X_scaled,y)
-
+    
     try:
         attention_threshold = 0
         ser = serial.Serial('/dev/serial0', 9600, timeout=1)

@@ -2,7 +2,8 @@ import numpy as np
 
 from scipy.signal import hilbert
 from PyEMD import EMD
-def extract_feature_vector(indices, df, window_size, classification, num_windows=5, filter_funcs=[], feature_funcs=[]):
+from feature_extraction import *
+def extract_feature_vector(indices, df, window_size, classification, num_windows=5, filter_funcs=[], features=[]):
     processed_data = []
     channel_names = ["Channel 1", "Channel 2", "Channel 3", "Channel 4"]
     for start_idx in indices:

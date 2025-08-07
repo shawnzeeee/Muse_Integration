@@ -16,12 +16,13 @@ from filter import bandpass_filter, notch_filter, ica_blink_filter
 from window_extractor import extract_feature_vector
 from train import train
 from feature_extraction import calculate_rms, calculate_peak_to_peak
-
+from feature_selector import anova_feature_scores
 # Define classifier
 classifier = get_svm()  # Swap out for get_lda(), get_xgboost(), get_random_forest(), etc.
 
 # Define features and filters of interest
-feature_funcs = [calculate_hjorth_parameters, calculate_bandpowers, calculate_log_variance]
+feature_funcs = [calculate_hjorth_parameters, calculate_bandpowers, calculate_mean, calculate_std, calculate_rms,
+                 calculate_skewness, calculate_kurtosis, calculate_entropy, calculate_peak_to_peak, calculate_log_variance]
 filter_funcs = [bandpass_filter, ica_blink_filter]
 
 window_size = 500
@@ -36,12 +37,16 @@ f1_scores = []
 file_names = []
 
 for csv_file in csv_files:
-    df = pd.read_csv(os.path.join(all_data_dir, csv_file))
+    csv_path = os.path.join(all_data_dir, csv_file)
+
+    feature_list = anova_feature_scores(csv_path)
+    print(feature_list)
+    df = pd.read_csv(csv_path)
     attention_indices = df.index[df['Class'] == 2].tolist()
     idle_indices = df.index[df['Class'] == 1].tolist()
     Xy = []
-    Xy.extend(extract_feature_vector(attention_indices, df, window_size, 2, num_windows, filter_funcs, feature_funcs))
-    Xy.extend(extract_feature_vector(idle_indices, df, window_size, 1, num_windows, filter_funcs, feature_funcs))
+    Xy.extend(extract_feature_vector(attention_indices, df, window_size, 2, num_windows, filter_funcs, feature_list))
+    Xy.extend(extract_feature_vector(idle_indices, df, window_size, 1, num_windows, filter_funcs, feature_list))
     Xy = pd.DataFrame(Xy).values
     X = Xy[:, :-1]
     y = Xy[:, -1]
@@ -51,11 +56,11 @@ for csv_file in csv_files:
     print(f"{csv_file}: F1 Score = {f1:.3f}")
 
 # Plot F1 scores in a bar plot
-plt.figure(figsize=(10,6))
-plt.bar(file_names, f1_scores)
-plt.ylabel('F1 Score')
-plt.xlabel('CSV File')
-plt.title('F1 Scores for Each Subject')
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
+# plt.figure(figsize=(10,6))
+# plt.bar(file_names, f1_scores)
+# plt.ylabel('F1 Score')
+# plt.xlabel('CSV File')
+# plt.title('F1 Scores for Each Subject')
+# plt.xticks(rotation=45)
+# plt.tight_layout()
+# plt.show()
